@@ -32,7 +32,11 @@ def gradcheck_naive(f, x):
         fxnh, _ = f(x)
         x[ix] += h
         numgrad = (fxh - fxnh) / 2 / h
-
+        #random.setstate(rndstate) 
+        #fxnh,g1 = f(x[ix] + h)
+        #random.setstate(rndstate) 
+        #fxh_h, g2 = f(x[ix] - h)
+        #numgrad = (fxnh - fxh_h) / 2 / h
 
         # Try modifying x[ix] with h defined above to compute
         # numerical gradients. Make sure you call random.setstate(rndstate)

@@ -15,7 +15,10 @@ def normalizeRows(x):
     """
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    #total = np.apply_along_axis(lambda x: np.sqrt(x.T.dot(x)),1,x)
+    #x /= total
+    num = x.shape[0]
+    x/=np.sqrt(np.sum(x**2, axis = 1)).reshape((num,1)) + 1e-30
     ### END YOUR CODE
 
     return x
@@ -58,7 +61,27 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     """
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    ### input 
+    v = predicted
+    ### z value
+    z = np.dot(outputVectors,v)
+    preds = softmax(z)
+    ### calculate the cost
+    cost = -np.log(preds[target])
+
+    ### cross entrophy cost 
+    ce = preds.copy()
+    ce[target] -= 1.0
+
+    N = ce.shape[0]
+    D = predicted.shape[0]
+    #gradout
+    grad = ce.reshape((N,1)) * predicted.reshape((1,D))
+    #gradIn
+    gradPred = (ce.reshape(1,N).dot(outputVectors)).flatten()
+
+
+
     ### END YOUR CODE
 
     return cost, gradPred, grad
@@ -94,10 +117,29 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
     # wish to match the autograder and receive points!
     indices = [target]
     indices.extend(getNegativeSamples(target, dataset, K))
-
+    #print indices
     ### YOUR CODE HERE
-    raise NotImplementedError
+    grad = np.zeros(outputVectors.shape)
+    gradPred = np.zeros(predicted.shape)
+   
+
+    labels = np.array([1]+[-1 for k in xrange(K)])
+    vecs = outputVectors[indices,:]
+
+    t = sigmoid(vecs.dot(predicted) * labels)
+    cost = -np.sum(np.log(t))
+
+    delta = labels*(t-1)
+    gradPred = delta.reshape((1,K+1)).dot(vecs).flatten()
+    gradtemp = delta.reshape((K+1,1)).dot(predicted.reshape((1,predicted.shape[0])))
+    for k in xrange(K+1):
+        grad[indices[k]]+=gradtemp[k,:]   
+ 
     ### END YOUR CODE
+    ### print "==== Gradient check for skip-gram ===="
+
+
+
 
     return cost, gradPred, grad
 
@@ -129,10 +171,16 @@ def skipgram(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     cost = 0.0
     gradIn = np.zeros(inputVectors.shape)
     gradOut = np.zeros(outputVectors.shape)
+    currentI = tokens[currentWord]
+    predicted = inputVectors[currentI, :]
+    
 
-    ### YOUR CODE HERE
-    raise NotImplementedError
-    ### END YOUR CODE
+    for cword in contextWords:
+        i = tokens[cword]
+        c_cost, c_grad_in, c_grad_out = word2vecCostAndGradient(predicted, i,outputVectors,dataset)
+        cost += c_cost
+        gradIn[currentI,:] += c_grad_in
+        gradOut += c_grad_out
 
     return cost, gradIn, gradOut
 
@@ -154,9 +202,6 @@ def cbow(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     gradIn = np.zeros(inputVectors.shape)
     gradOut = np.zeros(outputVectors.shape)
 
-    ### YOUR CODE HERE
-    raise NotImplementedError
-    ### END YOUR CODE
 
     return cost, gradIn, gradOut
 
@@ -209,10 +254,12 @@ def test_word2vec():
     np.random.seed(9265)
     dummy_vectors = normalizeRows(np.random.randn(10,3))
     dummy_tokens = dict([("a",0), ("b",1), ("c",2),("d",3),("e",4)])
-    print "==== Gradient check for skip-gram ===="
+    print "==== Gradient check for skip-gram 111===="
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
         skipgram, dummy_tokens, vec, dataset, 5, softmaxCostAndGradient),
         dummy_vectors)
+    print "==== Gradient check for skip-gram 222===="
+
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
         skipgram, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient),
         dummy_vectors)
