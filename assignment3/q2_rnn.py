@@ -31,7 +31,7 @@ class Config:
     """Holds model hyperparams and data information.
 
     The config class is used to store various hyperparameters and dataset
-    information parameters. Model objects are passed a Config() object at
+    information parameters. Model objects a+re passed a Config() object at
     instantiation.
     """
     n_word_features = 2 # Number of features for every word in the input.
@@ -287,8 +287,13 @@ class RNNModel(NERModel):
         with tf.variable_scope("RNN"):
             for time_step in range(self.max_length):
                 ### YOUR CODE HERE (~6-10 lines)
-                
+                with tf.variable_scope('Layer1'):
+                    U = tf.get_variable('U', (Config.hidden_size, Config.n_classes), initializer=tf.contrib.layers.xavier_initializer())
+                    b2 = tf.get_variable('b2', (Config.n_classes), initializer=tf.constant_initializer(0))
                 ### END YOUR CODE
+
+        input_shape = tf.shape(x)
+        state = tf.zeros((input_shape[0], Config.hidden_size))
 
         # Make sure to reshape @preds here.
         ### YOUR CODE HERE (~2-4 lines)
@@ -313,6 +318,12 @@ class RNNModel(NERModel):
             loss: A 0-d tensor (scalar)
         """
         ### YOUR CODE HERE (~2-4 lines)
+        masked_logits = tf.boolean_mask( preds, self.mask_placeholder)
+        masked_labels = tf.boolean_mask( self.labels_placeholder, self.mask_placeholder)
+        loss = tf.reduce_mean(
+            tf.nn.sparse_softmax_cross_entropy_with_logits( logits = masked_logits,
+                                                            labels = masked_labels )
+        )
         ### END YOUR CODE
         return loss
 
@@ -336,6 +347,7 @@ class RNNModel(NERModel):
             train_op: The Op for training.
         """
         ### YOUR CODE HERE (~1-2 lines)
+        train_op = tf.train.AdamOptimizer(Config.lr).minimize(loss)
         ### END YOUR CODE
         return train_op
 

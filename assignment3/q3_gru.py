@@ -87,6 +87,8 @@ class SequencePredictor(Model):
 
         x = self.inputs_placeholder
         ### YOUR CODE HERE (~2-3 lines)
+        preds = tf.nn.dynamic_rnn(cell, x, dtype=tf.float32)[1]
+        preds = tf.sigmoid(preds)
         ### END YOUR CODE
 
         return preds #state # preds
@@ -108,6 +110,8 @@ class SequencePredictor(Model):
         y = self.labels_placeholder
 
         ### YOUR CODE HERE (~1-2 lines)
+        loss = tf.nn.l2_loss(preds - y)
+        loss = tf.reduce_mean(loss)
 
         ### END YOUR CODE
 
@@ -143,7 +147,17 @@ class SequencePredictor(Model):
         # - Remember to clip gradients only if self.config.clip_gradients
         # is True.
         # - Remember to set self.grad_norm
+        grads_and_vars = optimizer.compute_gradients(loss)
+        variables = [output[1] for output in grads_and_vars]
+        gradients = [output[0] for output in grads_and_vars]
+        if self.config.clip_gradients:
+            tmp_gradients = tf.clip_by_global_norm(gradients, clip_norm=self.config.max_grad_norm)[0]
+            gradients = tmp_gradients
 
+        grads_and_vars = [(gradients[i], variables[i]) for i in range(len(gradients))]
+        self.grad_norm = tf.global_norm(gradients)
+
+        train_op = optimizer.apply_gradients(grads_and_vars)
         ### END YOUR CODE
 
         assert self.grad_norm is not None, "grad_norm was not set properly!"
@@ -209,9 +223,10 @@ def make_dynamics_plot(args, x, h, ht_rnn, ht_gru, params):
 
     plt.clf()
     plt.title("""Cell dynamics when x={}:
-Ur={:.2f}, Wr={:.2f}, br={:.2f}
-Uz={:.2f}, Wz={:.2f}, bz={:.2f}
-Uo={:.2f}, Wo={:.2f}, bo={:.2f}""".format(x, Ur[0,0], Wr[0,0], br[0], Uz[0,0], Wz[0,0], bz[0], Uo[0,0], Wo[0,0], bo[0]))
+    
+    Ur={:.2f}, Wr={:.2f}, br={:.2f}
+    Uz={:.2f}, Wz={:.2f}, bz={:.2f}
+    Uo={:.2f}, Wo={:.2f}, bo={:.2f}""".format(x, Ur[0,0], Wr[0,0], br[0], Uz[0,0], Wz[0,0], bz[0], Uo[0,0], Wo[0,0], bo[0]))
 
     plt.plot(h, ht_rnn, label="rnn")
     plt.plot(h, ht_gru, label="gru")
