@@ -3,10 +3,11 @@ import time
 import numpy as np
 import tensorflow as tf
 
-from q1_softmax import softmax
-from q1_softmax import cross_entropy_loss
-from model import Model
-from utils.general_utils import get_minibatches
+
+from .q1_softmax import softmax
+from .q1_softmax import cross_entropy_loss
+from .model import Model
+from .utils.general_utils import get_minibatches
 
 
 class Config(object):
@@ -185,7 +186,7 @@ class SoftmaxModel(Model):
             start_time = time.time()
             average_loss = self.run_epoch(sess, inputs, labels)
             duration = time.time() - start_time
-            print 'Epoch {:}: loss = {:.2f} ({:.3f} sec)'.format(epoch, average_loss, duration)
+            print('Epoch {:}: loss = {:.2f} ({:.3f} sec)'.format(epoch, average_loss, duration))
             losses.append(average_loss)
         return losses
 
@@ -229,6 +230,6 @@ def test_softmax_model():
     # If Ops are implemented correctly, the average loss should fall close to zero
     # rapidly.
     assert losses[-1] < .5
-    print "Basic (non-exhaustive) classifier tests pass"
+    print("Basic (non-exhaustive) classifier tests pass")
 if __name__ == "__main__":
     test_softmax_model()

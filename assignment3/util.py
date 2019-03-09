@@ -11,10 +11,15 @@ from __future__ import division
 import sys
 import time
 import logging
-import StringIO
+
 from collections import defaultdict, Counter, OrderedDict
 import numpy as np
 from numpy import array, zeros, allclose
+
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 logger = logging.getLogger("hw3")
 logger.setLevel(logging.DEBUG)
