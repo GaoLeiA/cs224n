@@ -7,10 +7,10 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import itertools
 
-from utils.treebank import StanfordSentiment
-import utils.glove as glove
+from .utils.treebank import StanfordSentiment
+from .utils.glove import *
 
-from q3_sgd import load_saved_params, sgd
+from .q3_sgd import load_saved_params, sgd
 
 # We will use sklearn here because it will run faster than implementing
 # ourselves. However, for other parts of this assignment you must implement
@@ -137,7 +137,7 @@ def outputPredictions(dataset, features, labels, clf, filename):
     pred = clf.predict(features)
     with open(filename, "w") as f:
         print >> f, "True\tPredicted\tText"
-        for i in xrange(len(dataset)):
+        for i in range(len(dataset)):
             print >> f, "%d\t%d\t%s" % (
                 labels[i], pred[i], " ".join(dataset[i][0]))
 
@@ -156,7 +156,7 @@ def main(args):
             (wordVectors[:nWords,:], wordVectors[nWords:,:]),
             axis=1)
     elif args.pretrained:
-        wordVectors = glove.loadWordVectors(tokens)
+        wordVectors = loadWordVectors(tokens)
     dimVectors = wordVectors.shape[1]
 
     # Load the train set
@@ -164,7 +164,7 @@ def main(args):
     nTrain = len(trainset)
     trainFeatures = np.zeros((nTrain, dimVectors))
     trainLabels = np.zeros((nTrain,), dtype=np.int32)
-    for i in xrange(nTrain):
+    for i in range(nTrain):
         words, trainLabels[i] = trainset[i]
         trainFeatures[i, :] = getSentenceFeatures(tokens, wordVectors, words)
 
@@ -173,7 +173,7 @@ def main(args):
     nDev = len(devset)
     devFeatures = np.zeros((nDev, dimVectors))
     devLabels = np.zeros((nDev,), dtype=np.int32)
-    for i in xrange(nDev):
+    for i in range(nDev):
         words, devLabels[i] = devset[i]
         devFeatures[i, :] = getSentenceFeatures(tokens, wordVectors, words)
 
@@ -182,7 +182,7 @@ def main(args):
     nTest = len(testset)
     testFeatures = np.zeros((nTest, dimVectors))
     testLabels = np.zeros((nTest,), dtype=np.int32)
-    for i in xrange(nTest):
+    for i in range(nTest):
         words, testLabels[i] = testset[i]
         testFeatures[i, :] = getSentenceFeatures(tokens, wordVectors, words)
 
